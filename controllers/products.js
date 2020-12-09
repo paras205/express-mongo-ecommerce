@@ -1,14 +1,21 @@
 const Product = require("../models/product");
 const Category = require("../models/Category");
 
-exports.addCategory = async (req, res) => {
+exports.addCategory = async (req, res, next) => {
   try {
-    const category = await Category.create(req.body);
+    const data = {
+      ...req.body,
+      image: `${
+        req.connection && req.connection.encrypted ? "https" : "http"
+      }://${req.get("host")}/uploads/images/${req.file.filename}`
+    };
+    const category = await Category.create(data);
     res.status(201).json({
       message: "success",
       data: category
     });
   } catch (err) {
+    next(err);
     console.log(err);
   }
 };
@@ -25,7 +32,7 @@ exports.getAllCategory = async (req, res) => {
   }
 };
 
-exports.addProduct = async (req, res) => {
+exports.addProduct = async (req, res, next) => {
   try {
     let productImages = [];
     if (req.files && req.files.productImages) {
@@ -39,9 +46,13 @@ exports.addProduct = async (req, res) => {
     }
     const product = await Product.create({
       ...req.body,
-      image: `${
-        req.connection && req.connection.encrypted ? "https" : "http"
-      }://${req.get("host")}/uploads/images/${req.files.image[0].filename}`,
+      image: {
+        url: `${
+          req.connection && req.connection.encrypted ? "https" : "http"
+        }://${req.get("host")}/uploads/images/${req.files.image[0].filename}`,
+        alt: req.body.image.alt,
+        caption: req.body.image.caption
+      },
       productImages
     });
     res.status(201).json({
@@ -49,6 +60,7 @@ exports.addProduct = async (req, res) => {
       data: product
     });
   } catch (err) {
+    next(err);
     console.log(err);
   }
 };
@@ -69,7 +81,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await Product.find({ ...keyword })
       .limit(pageSize)
       .skip(pageSize * (page - 1))
-      .populate("category");
+      .populate("category reviews");
     res.status(200).json({
       message: "success",
       page,
@@ -81,5 +93,29 @@ exports.getAllProducts = async (req, res) => {
       status: "fail",
       message: err
     });
+  }
+};
+
+exports.createReview = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (product) {
+      const alreadyReviewed = product.reviews.find(
+        (item) => item.user.toString() === req.user._id.toString()
+      );
+      if (alreadyReviewed) {
+        return next(new AppError("Product already reviewed", 400));
+      }
+      const review = {
+        name: req.user.name,
+        comment: req.body.comment
+      };
+      product.reviews.push(review);
+      await product.save();
+      res.status(201).json({ message: "Review added" });
+    }
+  } catch (err) {
+    next(err);
+    console.log(err);
   }
 };

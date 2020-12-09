@@ -1,5 +1,6 @@
 const express = require("express");
 const productController = require("../controllers/products");
+const authController = require("../controllers/user");
 const upload = require("../middleware/multer");
 const router = express.Router();
 
@@ -10,12 +11,26 @@ const imageUpload = upload.fields([
 
 router
   .route("/category")
-  .post(upload.single("image"), productController.addCategory)
+  .post(
+    authController.protect,
+    authController.restrictTo("user"),
+    upload.single("image"),
+    productController.addCategory
+  )
   .get(productController.getAllCategory);
 
 router
   .route("/")
-  .post(imageUpload, productController.addProduct)
+  .post(
+    authController.protect,
+    authController.restrictTo("user"),
+    imageUpload,
+    productController.addProduct
+  )
   .get(productController.getAllProducts);
+
+router
+  .route("/:id/reviews")
+  .post(authController.protect, productController.createReview);
 
 module.exports = router;

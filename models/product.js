@@ -7,10 +7,7 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-    rating: {
-      type: Number,
-      required: true
-    },
+
     comment: {
       type: String,
       required: true
@@ -33,8 +30,15 @@ const productSchema = new mongoose.Schema(
       type: String
     },
     image: {
-      type: String,
-      required: true
+      url: {
+        type: String
+      },
+      alt: {
+        type: String
+      },
+      caption: {
+        type: String
+      }
     },
     productImages: [{ type: String }],
     category: {
