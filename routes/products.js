@@ -33,4 +33,7 @@ router
   .route("/:id/reviews")
   .post(authController.protect, productController.createReview);
 
+router.post("/addToCart", authController.protect, productController.addToCart);
+router.get("/cart", authController.protect, productController.getAllCartItems);
+
 module.exports = router;

@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const Category = require("../models/Category");
+const Cart = require("../models/cart");
 
 exports.addCategory = async (req, res, next) => {
   try {
@@ -116,6 +117,57 @@ exports.createReview = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    console.log(err);
+  }
+};
+
+exports.addToCart = async (req, res) => {
+  const { productId, quantity, price } = req.body;
+  const userId = req.user._id;
+  try {
+    let cart = await Cart.findOne({ user: userId });
+
+    if (cart) {
+      let itemIndex = cart.products.findIndex((p) => p.productId == productId);
+      if (itemIndex > -1) {
+        let productItem = cart.products[itemIndex];
+        productItem.quantity = cart.products[itemIndex].quantity + 1;
+        productItem.price =
+          cart.products[itemIndex].price * cart.products[itemIndex].quantity;
+        cart.products[itemIndex] = productItem;
+      } else {
+        cart.products.push({ productId, quantity, price });
+      }
+      const total = cart.products.reduce(
+        (total, item) => total + item.price,
+        0
+      );
+      cart.total = total;
+      cart = await cart.save();
+      return res.status(201).send(cart);
+    } else {
+      const newCart = await Cart.create({
+        user: userId,
+        products: [{ productId, quantity, price }]
+      });
+      return res.status(201).send(newCart);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Something went wrong");
+  }
+};
+
+exports.getAllCartItems = async (req, res) => {
+  try {
+    const cartItems = await Cart.findOne({ user: req.user._id }).populate(
+      "user products.productId"
+    );
+    res.status(200).json({
+      status: "success",
+      data: cartItems
+    });
+  } catch (err) {
     console.log(err);
   }
 };

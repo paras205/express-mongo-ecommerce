@@ -90,7 +90,6 @@ exports.protect = async (req, res, next) => {
         new AppError("The user belongs to token does not exists", 401)
       );
     }
-
     req.user = currentUser;
     next();
   } catch (err) {
@@ -101,7 +100,6 @@ exports.protect = async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      // 403 => forbidden
       return next(
         new AppError("You do not have permission to perfom this action", 403)
       );

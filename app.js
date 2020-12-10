@@ -15,6 +15,7 @@ if (process.env.NODE_ENV === "development") {
 
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+
 app.all("*", (req, res, next) => {
   next(new AppError("Route not found", 404));
 });
