@@ -5,6 +5,8 @@ const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorHanlder");
 const productRoutes = require("./routes/products");
 const userRoutes = require("./routes/user");
+const bannerRoutes = require("./routes/banners");
+const settingRoutes = require("./routes/settings");
 
 const app = express();
 app.use(express.json());
@@ -15,6 +17,8 @@ if (process.env.NODE_ENV === "development") {
 
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/banners", bannerRoutes);
+app.use("/api/settings", settingRoutes);
 
 app.all("*", (req, res, next) => {
   next(new AppError("Route not found", 404));

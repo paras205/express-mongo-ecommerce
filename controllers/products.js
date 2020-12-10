@@ -195,10 +195,13 @@ exports.createOrder = async (req, res) => {
         itemsPrice,
         taxPrice,
         shippingPrice,
-        totalPrice: cartItems.products.reduce(
-          (total, item) => total + item.price * item.quantity,
-          0
-        )
+        totalPrice:
+          cartItems.products.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0
+          ) + shippingPrice
+            ? shippingPrice
+            : 0
       });
 
       res.status(201).json({
