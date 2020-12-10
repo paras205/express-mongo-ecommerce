@@ -22,10 +22,7 @@ const cartSchema = new mongoose.Schema(
           required: true
         }
       }
-    ],
-    total: {
-      type: Number
-    }
+    ]
   },
   { timestamps: true }
 );

@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const Category = require("../models/Category");
 const Cart = require("../models/cart");
+const Order = require("../models/order");
 
 exports.addCategory = async (req, res, next) => {
   try {
@@ -86,6 +87,7 @@ exports.getAllProducts = async (req, res) => {
     res.status(200).json({
       message: "success",
       page,
+      count,
       pages: Math.ceil(count / pageSize),
       data: products
     });
@@ -131,24 +133,24 @@ exports.addToCart = async (req, res) => {
       let itemIndex = cart.products.findIndex((p) => p.productId == productId);
       if (itemIndex > -1) {
         let productItem = cart.products[itemIndex];
-        productItem.quantity = cart.products[itemIndex].quantity + 1;
+        productItem.quantity = cart.products[itemIndex].quantity + quantity;
         productItem.price = cart.products[itemIndex].price;
         cart.products[itemIndex] = productItem;
       } else {
         cart.products.push({ productId, quantity, price });
       }
-      const total = cart.products.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-      );
-      cart.total = total;
+      // const total = cart.products.reduce(
+      //   (total, item) => total + item.price * item.quantity,
+      //   0
+      // );
+      // cart.total = total;
       cart = await cart.save();
       return res.status(201).send(cart);
     } else {
       const newCart = await Cart.create({
         user: userId,
-        products: [{ productId, quantity, price }],
-        total: price * quantity
+        products: [{ productId, quantity, price }]
+        // total: price * quantity
       });
       return res.status(201).send(newCart);
     }
@@ -166,6 +168,75 @@ exports.getAllCartItems = async (req, res) => {
     res.status(200).json({
       status: "success",
       data: cartItems
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.createOrder = async (req, res) => {
+  try {
+    const {
+      cart,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      taxPrice,
+      shippingPrice
+    } = req.body;
+    const userId = req.user._id;
+    const cartItems = await Cart.findOne({ user: userId });
+    if (cartItems && cartItems.products.length > 0) {
+      const order = await Order.create({
+        user: userId,
+        cart,
+        shippingAddress,
+        paymentMethod,
+        itemsPrice,
+        taxPrice,
+        shippingPrice,
+        totalPrice: cartItems.products.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        )
+      });
+
+      res.status(201).json({
+        status: "success",
+        data: order
+      });
+    } else {
+      res.status(400).json({
+        message: "No Order Items"
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.getUserOrder = async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user._id }).populate(
+      "cart user"
+    );
+    res.status(200).json({
+      status: "success",
+      count: orders.length,
+      data: orders
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({}).populate("cart user");
+    res.status(200).json({
+      message: "success",
+      count: orders.length,
+      data: orders
     });
   } catch (err) {
     console.log(err);

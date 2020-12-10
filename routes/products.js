@@ -36,4 +36,16 @@ router
 router.post("/addToCart", authController.protect, productController.addToCart);
 router.get("/cart", authController.protect, productController.getAllCartItems);
 
+router
+  .route("/order")
+  .post(authController.protect, productController.createOrder)
+  .get(authController.protect, productController.getUserOrder);
+
+router.get(
+  "/admin-orders",
+  authController.protect,
+  authController.restrictTo("user"),
+  productController.getAllOrders
+);
+
 module.exports = router;
