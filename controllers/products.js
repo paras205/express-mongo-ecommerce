@@ -132,14 +132,13 @@ exports.addToCart = async (req, res) => {
       if (itemIndex > -1) {
         let productItem = cart.products[itemIndex];
         productItem.quantity = cart.products[itemIndex].quantity + 1;
-        productItem.price =
-          cart.products[itemIndex].price * cart.products[itemIndex].quantity;
+        productItem.price = cart.products[itemIndex].price;
         cart.products[itemIndex] = productItem;
       } else {
         cart.products.push({ productId, quantity, price });
       }
       const total = cart.products.reduce(
-        (total, item) => total + item.price,
+        (total, item) => total + item.price * item.quantity,
         0
       );
       cart.total = total;
@@ -148,7 +147,8 @@ exports.addToCart = async (req, res) => {
     } else {
       const newCart = await Cart.create({
         user: userId,
-        products: [{ productId, quantity, price }]
+        products: [{ productId, quantity, price }],
+        total: price * quantity
       });
       return res.status(201).send(newCart);
     }
