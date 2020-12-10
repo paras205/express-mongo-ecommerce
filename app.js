@@ -6,6 +6,9 @@ const globalErrorHandler = require("./controllers/errorHanlder");
 const productRoutes = require("./routes/products");
 const userRoutes = require("./routes/user");
 const bannerRoutes = require("./routes/banners");
+const servicesRoutes = require("./routes/services");
+const testimonialsRoutes = require("./routes/testimonials");
+const blogRoutes = require("./routes/blog");
 const settingRoutes = require("./routes/settings");
 
 const app = express();
@@ -18,6 +21,9 @@ if (process.env.NODE_ENV === "development") {
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/banners", bannerRoutes);
+app.use("/api/services", servicesRoutes);
+app.use("/api/testimonials", testimonialsRoutes);
+app.use("/api/blogs", blogRoutes);
 app.use("/api/settings", settingRoutes);
 
 app.all("*", (req, res, next) => {
