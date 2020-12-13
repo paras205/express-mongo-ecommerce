@@ -1,3 +1,44 @@
 const Setting = require("../models/settings");
 
-exports.addSettings = async (req, res, next) => {};
+exports.getSettings = async (req, res) => {
+  try {
+    const settings = await Setting.find();
+    res.status(200).json({
+      message: "success",
+      data: settings
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.updateSettings = async (req, res, next) => {
+  try {
+    let body = req.body;
+    let id =
+      req.params != undefined && req.params.id != undefined
+        ? req.params.id
+        : null;
+    if (id == null) {
+      const set = await Settings.find();
+      if (set.length == 0) {
+        const cur = await Settings.create(body);
+        id = cur._id;
+      } else {
+        id = set[0]._id;
+      }
+    }
+    body.updatedBy = req.user._id;
+    const query = await Settings.findOneAndUpdate({ _id: id }, body, {
+      new: true
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: query
+    });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};

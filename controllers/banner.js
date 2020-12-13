@@ -24,9 +24,25 @@ exports.addBanner = async (req, res, next) => {
 
 exports.getAllBanner = async (req, res) => {
   try {
-    const banners = await Banner.find();
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    const keyword = req.query.search
+      ? {
+          name: {
+            $regex: req.query.search,
+            $options: "i"
+          }
+        }
+      : {};
+    const count = await Banner.countDocuments({ ...keyword });
+    const banners = await Banner.find({ ...keyword })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
     res.status(200).json({
       message: "success",
+      page,
+      count,
+      pages: Math.ceil(count / pageSize),
       data: banners
     });
   } catch (err) {
