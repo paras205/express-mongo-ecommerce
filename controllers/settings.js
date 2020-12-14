@@ -14,25 +14,31 @@ exports.getSettings = async (req, res) => {
 
 exports.updateSettings = async (req, res, next) => {
   try {
-    let body = req.body;
+    const logo = {
+      url: `${
+        req.connection && req.connection.encrypted ? "https" : "http"
+      }://${req.get("host")}/uploads/images/${req.file.filename}`,
+      alt: req.body.logo.alt,
+      caption: req.body.logo.caption
+    };
+    let body = { ...req.body, logo, updatedBy: req.user._id };
     let id =
       req.params != undefined && req.params.id != undefined
         ? req.params.id
         : null;
     if (id == null) {
-      const set = await Settings.find();
+      const set = await Setting.find();
       if (set.length == 0) {
-        const cur = await Settings.create(body);
+        const cur = await Setting.create(body);
         id = cur._id;
       } else {
         id = set[0]._id;
       }
     }
     body.updatedBy = req.user._id;
-    const query = await Settings.findOneAndUpdate({ _id: id }, body, {
+    const query = await Setting.findOneAndUpdate({ _id: id }, body, {
       new: true
     });
-
     res.status(201).json({
       status: "success",
       data: query
