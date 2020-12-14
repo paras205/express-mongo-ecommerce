@@ -1,4 +1,5 @@
 const Courses = require("../models/courses");
+const AppError = require("../utils/appError");
 
 exports.addCourses = async (req, res, next) => {
   try {
@@ -50,3 +51,30 @@ exports.getAllCourses = async (req, res) => {
     console.log(err);
   }
 };
+
+exports.enrollClass = async (req, res) => {
+  try {
+    const course = await Courses.findById(req.params.courseId);
+    const applied = course.appliedBy.filter((item) => item.email === email);
+    if (applied.length > 0) {
+      return next(new AppError("You already applied for this course"));
+    }
+    const enroll = {
+      email: req.body.email,
+      name: req.body.name,
+      phone: req.body.phone,
+      mobileNumber: req.body.mobileNumber,
+      course: req.body.course,
+      percentage: req.body.percentage,
+      schedule: req.body.schedule,
+      message: req.body.message
+    };
+    course.appliedBy.push(enroll);
+    await Courses.save();
+    res.status(201).json({ message: "successfully enrolled " });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.addReview = async (req, res) => {};
