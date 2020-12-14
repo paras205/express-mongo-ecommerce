@@ -11,97 +11,95 @@ const studentSchema = new mongoose.Schema({
     required: true
   },
   phone: {
-    type: String,
+    type: Number,
     required: true
   },
   mobileNumber: {
-    type: String,
+    type: Number,
     required: true
   },
-  course: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Course"
-  },
+
   percentage: {
     type: Number,
     required: true
   },
   schedule: {
-    type: Date.now()
+    type: Date
   },
   message: {
     type: String
-  }
-});
-const reviewSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true
-    },
-    comment: {
-      type: String,
-      required: true
-    }
-  },
-  { timestamps: true }
-);
-
-const courseSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  slug: {
-    type: String
-  },
-  image: {
-    alt: {
-      type: String,
-      required: true
-    },
-    caption: {
-      type: String,
-      required: true
-    },
-    url: {
-      type: String,
-      required: true
-    }
-  },
-  description: {
-    type: String,
-    required: true
-  },
-  isPublish: {
-    type: Boolean,
-    required: true
-  },
-  display_order: {
-    type: Number
-  },
-  syllabus: {
-    type: String
-  },
-  overView: {
-    type: String
-  },
-  price: {
-    type: Number
   },
   discount: {
     type: Number
   },
   totalPriceWithDiscount: {
     type: Number
-  },
-  startDate: {
-    type: Date
-  },
-  videoes: {},
-  appliedBy: [studentSchema],
-  reviews: [reviewSchema]
+  }
 });
+const reviewSchema = mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    rating: { type: Number, required: true },
+    comment: { type: String, required: true },
+    email: { type: String, required: true, unique: true }
+  },
+  {
+    timestamps: true
+  }
+);
+
+const courseSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true
+    },
+    slug: {
+      type: String
+    },
+    image: {
+      alt: {
+        type: String,
+        required: true
+      },
+      caption: {
+        type: String,
+        required: true
+      },
+      url: {
+        type: String,
+        required: true
+      }
+    },
+    description: {
+      type: String,
+      required: true
+    },
+    isPublish: {
+      type: Boolean,
+      required: true
+    },
+    display_order: {
+      type: Number
+    },
+    syllabus: {
+      type: String
+    },
+    overView: {
+      type: String
+    },
+    price: {
+      type: Number
+    },
+    startDate: {
+      type: Date
+    },
+    videoes: {},
+    appliedBy: [studentSchema],
+    reviews: [reviewSchema]
+  },
+  { timestamps: true }
+);
 
 courseSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });

@@ -39,7 +39,8 @@ exports.getAllCourses = async (req, res) => {
     const count = await Courses.countDocuments({ ...keyword });
     const courses = await Courses.find({ ...keyword })
       .limit(pageSize)
-      .skip(pageSize * (page - 1));
+      .skip(pageSize * (page - 1))
+      .populate("reviews");
     res.status(200).json({
       message: "success",
       page,
@@ -52,29 +53,97 @@ exports.getAllCourses = async (req, res) => {
   }
 };
 
-exports.enrollClass = async (req, res) => {
+exports.enrollClass = async (req, res, next) => {
   try {
+    const {
+      email,
+      name,
+      phone,
+      mobileNumber,
+      percentage,
+      schedule,
+      message
+    } = req.body;
     const course = await Courses.findById(req.params.courseId);
+    if (!course || course.length === 0)
+      return next(new AppError("course not found"));
     const applied = course.appliedBy.filter((item) => item.email === email);
     if (applied.length > 0) {
       return next(new AppError("You already applied for this course"));
     }
     const enroll = {
-      email: req.body.email,
-      name: req.body.name,
-      phone: req.body.phone,
-      mobileNumber: req.body.mobileNumber,
-      course: req.body.course,
-      percentage: req.body.percentage,
-      schedule: req.body.schedule,
-      message: req.body.message
+      email,
+      name,
+      phone,
+      mobileNumber,
+      percentage,
+      schedule,
+      message
     };
+    if (percentage >= 90) {
+      enroll.discount = 15;
+    } else if (percentage >= 80 && percentage < 90) {
+      enroll.discount = 10;
+    } else if (percentage >= 70 && percentage < 80) {
+      enroll.discount = 5;
+    } else {
+      enroll.discount = 2;
+    }
+    enroll.totalPriceWithDiscount =
+      course.price - (enroll.discount / 100) * course.price;
+
     course.appliedBy.push(enroll);
-    await Courses.save();
+    await course.save();
     res.status(201).json({ message: "successfully enrolled " });
   } catch (err) {
     console.log(err);
   }
 };
 
-exports.addReview = async (req, res) => {};
+exports.addReview = async (req, res, next) => {
+  try {
+    const { name, email, rating, comment } = req.body;
+    const course = await Courses.findById(req.params.id);
+    if (!course || course.length === 0)
+      return next(new AppError("course not found"));
+    const alreadyReviewed = course.reviews.filter(
+      (item) => item.email === email
+    );
+    if (alreadyReviewed.length > 0) {
+      return next(new AppError("Course already reviewed"));
+    }
+    const review = {
+      name,
+      rating: Number(rating),
+      comment,
+      email
+    };
+    course.reviews.push(review);
+    course.numReviews = course.reviews.length;
+    course.rating =
+      course.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      course.reviews.length;
+    await course.save();
+    res.status(201).json({
+      message: "Review added"
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.getEnrolledStudents = async (req, res) => {
+  try {
+    const courses = await Courses.find();
+    const enrolledStudents = courses.map((item) => {
+      return item.appliedBy;
+    });
+    res.status(200).json({
+      message: "success",
+      data: enrolledStudents,
+      count: enrolledStudents.length
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};

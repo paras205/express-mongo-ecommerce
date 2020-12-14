@@ -9,6 +9,7 @@ const bannerRoutes = require("./routes/banners");
 const servicesRoutes = require("./routes/services");
 const testimonialsRoutes = require("./routes/testimonials");
 const blogRoutes = require("./routes/blog");
+const courseRoutes = require("./routes/courses");
 const settingRoutes = require("./routes/settings");
 
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/banners", bannerRoutes);
 app.use("/api/services", servicesRoutes);
 app.use("/api/testimonials", testimonialsRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/courses", courseRoutes);
 app.use("/api/settings", settingRoutes);
 
 app.all("*", (req, res, next) => {

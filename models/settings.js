@@ -53,6 +53,20 @@ const settingSchema = new mongoose.Schema(
     maintainceMode: {
       type: Boolean
     },
+    socialLinks: {
+      facebook: {
+        type: String
+      },
+      twitter: {
+        type: String
+      },
+      youtube: {
+        type: String
+      },
+      gmail: {
+        type: String
+      }
+    },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"

@@ -15,7 +15,10 @@ router
   )
   .get(courseController.getAllCourses);
 
-router.post("/courseId/enroll", courseController.enrollClass);
-router.post("/courseId/reviews", courseController.addReview);
+router.post("/:courseId/enroll", courseController.enrollClass);
+
+router.post("/:id/reviews", courseController.addReview);
+
+router.get("/enrolledStudent", courseController.getEnrolledStudents);
 
 module.exports = router;
