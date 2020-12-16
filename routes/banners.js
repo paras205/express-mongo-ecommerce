@@ -16,7 +16,7 @@ router
   .get(bannerController.getAllBanner);
 
 router
-  .route("/:slug")
+  .route("/:id")
   .put(
     authController.protect,
     authController.restrictTo("user"),

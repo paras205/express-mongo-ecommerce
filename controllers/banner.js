@@ -1,26 +1,7 @@
 const Banner = require("../models/banner");
+const FactoryHandler = require("./FactoryHandler");
 
-exports.addBanner = async (req, res, next) => {
-  try {
-    const banner = await Banner.create({
-      ...req.body,
-      image: {
-        url: `${
-          req.connection && req.connection.encrypted ? "https" : "http"
-        }://${req.get("host")}/uploads/images/${req.file.filename}`,
-        alt: req.body.image.alt,
-        caption: req.body.image.caption
-      }
-    });
-    res.status(201).json({
-      message: "success",
-      data: banner
-    });
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-};
+exports.addBanner = FactoryHandler.createOne(Banner);
 
 exports.getAllBanner = async (req, res) => {
   try {
@@ -62,5 +43,5 @@ exports.getBanner = async (req, res) => {
   }
 };
 
-exports.updateBanner = async (req, res) => {};
-exports.deleteBanner = async (req, res) => {};
+exports.updateBanner = FactoryHandler.updateOne(Banner);
+exports.deleteBanner = FactoryHandler.deleteOne(Banner);
