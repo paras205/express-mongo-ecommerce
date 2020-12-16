@@ -1,22 +1,20 @@
+const catchAsync = require("../middleware/catchAysnc");
 const AppError = require("../utils/appError");
 
-exports.deleteOne = (Model) => async (req, res, next) => {
-  try {
+exports.deleteOne = (Model) =>
+  catchAsync(async (req, res, next) => {
     const doc = await Model.findByIdAndDelete(req.params.id);
     if (!doc) {
       return next(new AppError("No document found with that id", 404));
     }
     res.status(204).json({
-      status: "success",
+      message: "success",
       data: null
     });
-  } catch (err) {
-    console.log(err);
-  }
-};
+  });
 
-exports.updateOne = (Model) => async (req, res, next) => {
-  try {
+exports.updateOne = (Model) =>
+  catchAsync(async (req, res, next) => {
     const doc = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
@@ -25,19 +23,47 @@ exports.updateOne = (Model) => async (req, res, next) => {
       return next(new AppError("No document found with that id", 404));
     }
     res.status(200).json({
-      status: "success",
+      message: "success",
       data: doc
     });
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-};
+  });
 
-exports.getOne = (Model) => async (req, res, next) => {};
-exports.getAll = (Model) => async (req, res, next) => {};
-exports.createOne = (Model) => async (req, res, next) => {
-  try {
+exports.getOne = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const doc = await Model.findById(req.params.id);
+    res.status(200).json({
+      message: "success",
+      data: doc
+    });
+  });
+
+exports.getAll = (Model) =>
+  catchAsync(async (req, res, next) => {
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    const keyword = req.query.search
+      ? {
+          name: {
+            $regex: req.query.search,
+            $options: "i"
+          }
+        }
+      : {};
+    const count = await Model.countDocuments({ ...keyword });
+    const doc = await Model.find({ ...keyword })
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
+    res.status(200).json({
+      message: "success",
+      page,
+      count,
+      pages: Math.ceil(count / pageSize),
+      data: doc
+    });
+  });
+
+exports.createOne = (Model) =>
+  catchAsync(async (req, res, next) => {
     const doc = await Model.create({
       ...req.body,
       image: {
@@ -52,8 +78,4 @@ exports.createOne = (Model) => async (req, res, next) => {
       message: "success",
       data: doc
     });
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-};
+  });
