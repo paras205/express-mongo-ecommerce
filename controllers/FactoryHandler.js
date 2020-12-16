@@ -1,3 +1,4 @@
+const APIFeatures = require("../middleware/AppFeatures");
 const catchAsync = require("../middleware/catchAysnc");
 const AppError = require("../utils/appError");
 
@@ -28,9 +29,14 @@ exports.updateOne = (Model) =>
     });
   });
 
-exports.getOne = (Model) =>
+exports.getOne = (Model, popOptions) =>
   catchAsync(async (req, res, next) => {
-    const doc = await Model.findById(req.params.id);
+    let query = Model.findById(req.params.id);
+    if (popOptions) query = query.populate(popOptions);
+    const doc = await query;
+    if (!doc) {
+      return next(new AppError("No document found with that id", 404));
+    }
     res.status(200).json({
       message: "success",
       data: doc
@@ -39,8 +45,6 @@ exports.getOne = (Model) =>
 
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
-    const pageSize = 10;
-    const page = Number(req.query.pageNumber) || 1;
     const keyword = req.query.search
       ? {
           name: {
@@ -50,14 +54,15 @@ exports.getAll = (Model) =>
         }
       : {};
     const count = await Model.countDocuments({ ...keyword });
-    const doc = await Model.find({ ...keyword })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+    const features = new APIFeatures(Model.find({ ...keyword }), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const doc = await features.query;
     res.status(200).json({
       message: "success",
-      page,
       count,
-      pages: Math.ceil(count / pageSize),
       data: doc
     });
   });
